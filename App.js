@@ -1,20 +1,60 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+// App.js
 
-export default function App() {
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import CadastroAluno from './src/screens/CadastroAluno';
+import CadastroNutricional from './src/screens/CadastroNutricional';
+import HorariosPreferencias from './src/screens/HorariosPreferencias';
+import TrabalheConosco from './src/screens/TrabalheConosco';
+import Contato from './src/screens/Contato';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const CadastroAlunoStack = () => (
+  <Stack.Navigator initialRouteName="CadastroAluno">
+    <Stack.Screen name="CadastroAluno" component={CadastroAluno} />
+  </Stack.Navigator>
+);
+
+const CadastroNutricionalStack = () => (
+  <Stack.Navigator initialRouteName="CadastroNutricional">
+    <Stack.Screen name="CadastroNutricional" component={CadastroNutricional} />
+  </Stack.Navigator>
+);
+
+const HorariosPreferenciasStack = () => (
+  <Stack.Navigator initialRouteName="HorariosPreferencias">
+    <Stack.Screen name="HorariosPreferencias" component={HorariosPreferencias} />
+  </Stack.Navigator>
+);
+
+const TrabalheConoscoStack = () => (
+  <Stack.Navigator initialRouteName="TrabalheConosco">
+    <Stack.Screen name="TrabalheConosco" component={TrabalheConosco} />
+  </Stack.Navigator>
+);
+
+const ContatoStack = () => (
+  <Stack.Navigator initialRouteName="Contato">
+    <Stack.Screen name="Contato" component={Contato} />
+  </Stack.Navigator>
+);
+
+function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={CadastroAlunoStack} />
+        <Tab.Screen name="Nutrição" component={CadastroNutricionalStack} />
+        <Tab.Screen name="Horários e Preferências" component={HorariosPreferenciasStack} />
+        <Tab.Screen name="Trabalhe Conosco" component={TrabalheConoscoStack} />
+        <Tab.Screen name="Contato" component={ContatoStack} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
