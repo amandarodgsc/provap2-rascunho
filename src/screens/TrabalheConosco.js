@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TrabalheConosco = () => {
   const [nome, setNome] = useState('');
@@ -15,28 +16,35 @@ const TrabalheConosco = () => {
 
     // Aqui você pode adicionar a lógica para enviar o currículo (por exemplo, enviar para um servidor)
     try {
-      const respostaServidor = await fetch('URL_DO_SEU_BACKEND', {
+       const respostaServidor = await fetch('URL_DO_SEU_BACKEND', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nome: nome,
-          email: email,
-          curriculo: curriculo,
-        }),
-      });
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+           nome: nome,
+           email: email,
+           curriculo: curriculo,
+         }),
+       });
 
-      if (respostaServidor.ok) {
-        // Exemplo de mensagem de sucesso:
-        Alert.alert('Sucesso', 'Currículo enviado com sucesso!');
-        // Limpeza dos campos:
-        setNome('');
-        setEmail('');
-        setCurriculo('');
-      } else {
-        Alert.alert('Erro', 'Falha ao enviar o currículo. Por favor, tente novamente.');
-      }
+       if (respostaServidor.ok) {
+      Alert.alert('Sucesso', 'Currículo enviado com sucesso!');
+      // Limpeza dos campos:
+      setNome('');
+      setEmail('');
+      setCurriculo('');
+
+      // Salvando os dados localmente usando AsyncStorage
+      const dadosCurriculo = {
+        nome: nome,
+        email: email,
+        curriculo: curriculo,
+      };
+      await AsyncStorage.setItem('curriculo', JSON.stringify(dadosCurriculo));
+       } else {
+         Alert.alert('Erro', 'Falha ao enviar o currículo. Por favor, tente novamente.');
+       }
     } catch (erro) {
       console.error('Erro ao enviar o currículo:', erro);
       Alert.alert('Erro', 'Algo deu errado. Por favor, tente novamente.');

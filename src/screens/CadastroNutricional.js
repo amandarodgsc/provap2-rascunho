@@ -1,134 +1,201 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import { TextInputMask } from 'react-native-masked-text';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, StyleSheet, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import { Appbar, Button, Card, Title, Paragraph } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const TransparentLabelInput = ({ label, value, onChangeText, ...props }) => (
+  <View style={styles.inputContainer}>
+    <TextInput
+      style={styles.input}
+      placeholder={label}
+      placeholderTextColor="grey"
+      value={value}
+      onChangeText={onChangeText}
+      {...props}
+    />
+  </View>
+);
 
 const CadastroNutricional = () => {
   const [informacoesNutricionais, setInformacoesNutricionais] = useState([]);
-  const [novaInformacao, setNovaInformacao] = useState({ id: Date.now(), crianca: '', peso: '', altura: '' });
+  const [novaInformacao, setNovaInformacao] = useState({
+    id: Date.now(),
+    crianca: '',
+    alergias: '',
+    preferencias: '',
+    horarioAlmoco: '',
+    horarioLanche: '',
+  });
+
+  useEffect(() => {
+    loadInformacoesNutricionais();
+  }, []);
+
+  const loadInformacoesNutricionais = async () => {
+    try {
+      const informacoesNutricionaisData = await AsyncStorage.getItem('informacoesNutricionais');
+      if (informacoesNutricionaisData) {
+        setInformacoesNutricionais(JSON.parse(informacoesNutricionaisData));
+      }
+    } catch (error) {
+      console.error('Error loading informacoesNutricionais: ', error);
+    }
+  };
+
+  const saveInformacoesNutricionais = async () => {
+    try {
+      await AsyncStorage.setItem('informacoesNutricionais', JSON.stringify(informacoesNutricionais));
+    } catch (error) {
+      console.error('Error saving informacoesNutricionais: ', error);
+    }
+  };
 
   const adicionarInformacaoNutricional = () => {
-    // Verifica se os campos obrigatórios estão preenchidos
-    if (!novaInformacao.crianca || !novaInformacao.peso || !novaInformacao.altura) {
-      // Exibe uma mensagem de erro, caso algum campo esteja vazio
-      return alert('Nome da Criança, Peso e Altura são campos obrigatórios.');
+    if (!novaInformacao.crianca || !novaInformacao.alergias || !novaInformacao.preferencias || !novaInformacao.horarioAlmoco || !novaInformacao.horarioLanche) {
+      return alert('Todos os campos são obrigatórios.');
     }
 
-    // Adiciona a nova informação nutricional à lista
     setInformacoesNutricionais([...informacoesNutricionais, novaInformacao]);
+    saveInformacoesNutricionais();
 
-    // Limpa o formulário após adicionar a informação nutricional
-    setNovaInformacao({ id: Date.now(), crianca: '', peso: '', altura: '' });
+    setNovaInformacao({
+      id: Date.now(),
+      crianca: '',
+      alergias: '',
+      preferencias: '',
+      horarioAlmoco: '',
+      horarioLanche: '',
+    });
   };
 
   const editarInformacaoNutricional = (id) => {
-    // Encontra a informação nutricional na lista com base no ID
     const informacaoParaEditar = informacoesNutricionais.find((item) => item.id === id);
 
-    // Atualiza os estados do formulário com as informações para edição
-    setNovaInformacao({
-      id: informacaoParaEditar.id,
-      crianca: informacaoParaEditar.crianca,
-      peso: informacaoParaEditar.peso,
-      altura: informacaoParaEditar.altura,
-    });
+    // Atualiza os dados da novaInformacao com os dados da informacaoNutricional selecionada para edição
+    setNovaInformacao(informacaoParaEditar);
 
-    // Remove a informação nutricional da lista após ser selecionada para edição
+    // Remove a informacaoNutricional da lista após ser selecionada para edição
     setInformacoesNutricionais(informacoesNutricionais.filter((item) => item.id !== id));
+    saveInformacoesNutricionais();
   };
 
   const excluirInformacaoNutricional = (id) => {
-    // Remove a informação nutricional da lista com base no ID
+    // Remove a informacaoNutricional da lista com base no ID
     setInformacoesNutricionais(informacoesNutricionais.filter((item) => item.id !== id));
+    saveInformacoesNutricionais();
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cadastro Nutricional</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nome da Criança"
-        value={novaInformacao.crianca}
-        onChangeText={(text) => setNovaInformacao({ ...novaInformacao, crianca: text })}
-      />
-      <TextInputMask
-        style={styles.input}
-        placeholder="Peso (kg)"
-        type="money"
-        options={{
-          precision: 3,
-          separator: ',',
-          delimiter: '.',
-          unit: '',
-          suffixUnit: ''
-        }}
-        value={novaInformacao.peso}
-        onChangeText={(text) => setNovaInformacao({ ...novaInformacao, peso: text })}
-      />
-      <TextInputMask
-        style={styles.input}
-        placeholder="Altura (cm)"
-        type="only-numbers"
-        value={novaInformacao.altura}
-        onChangeText={(text) => setNovaInformacao({ ...novaInformacao, altura: text })}
-      />
-      <TouchableOpacity style={styles.button} onPress={adicionarInformacaoNutricional}>
-        <Text style={styles.buttonText}>Adicionar Informação Nutricional</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => {}} />
+        <Appbar.Content title="Cadastro Nutricional" />
+        <Appbar.Action icon="magnify" onPress={() => {}} />
+        <Appbar.Action icon="dots-vertical" onPress={() => {}} />
+      </Appbar.Header>
 
-      {/* Lista de informações nutricionais cadastradas */}
-      <View>
-        <Text>Lista de Informações Nutricionais</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TransparentLabelInput
+          label="Nome da Criança"
+          value={novaInformacao.crianca}
+          onChangeText={(text) => setNovaInformacao({ ...novaInformacao, crianca: text })}
+        />
+        <TransparentLabelInput
+          label="Alergias"
+          value={novaInformacao.alergias}
+          onChangeText={(text) => setNovaInformacao({ ...novaInformacao, alergias: text })}
+        />
+        <TransparentLabelInput
+          label="Preferências"
+          value={novaInformacao.preferencias}
+          onChangeText={(text) => setNovaInformacao({ ...novaInformacao, preferencias: text })}
+        />
+        <TransparentLabelInput
+          label="Horário de Almoço"
+          value={novaInformacao.horarioAlmoco}
+          onChangeText={(text) => setNovaInformacao({ ...novaInformacao, horarioAlmoco: text })}
+        />
+        <TransparentLabelInput
+          label="Horário de Lanche"
+          value={novaInformacao.horarioLanche}
+          onChangeText={(text) => setNovaInformacao({ ...novaInformacao, horarioLanche: text })}
+        />
+        <Button style={styles.button} icon="account-plus" mode="contained" onPress={adicionarInformacaoNutricional}>
+          Adicionar Informação Nutricional
+        </Button>
+
         <FlatList
           data={informacoesNutricionais}
           keyExtractor={(item) => item.id.toString()}
+          ListHeaderComponent={() => (
+            <Card style={styles.headerCard}>
+              <Card.Content>
+                <Title style={styles.headerTitle}>Informações Nutricionais Cadastradas</Title>
+              </Card.Content>
+            </Card>
+          )}
           renderItem={({ item }) => (
-            <View>
-              <Text>{item.crianca}</Text>
-              <Text>{item.peso} kg</Text>
-              <Text>{item.altura} cm</Text>
-              <TouchableOpacity onPress={() => editarInformacaoNutricional(item.id)}>
-                <Text>Editar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => excluirInformacaoNutricional(item.id)}>
-                <Text>Excluir</Text>
-              </TouchableOpacity>
-            </View>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Paragraph>{`Nome da Criança: ${item.crianca}`}</Paragraph>
+                <Paragraph>{`Alergias: ${item.alergias}`}</Paragraph>
+                <Paragraph>{`Preferências: ${item.preferencias}`}</Paragraph>
+                <Paragraph>{`Horário de Almoço: ${item.horarioAlmoco}`}</Paragraph>
+                <Paragraph>{`Horário de Lanche: ${item.horarioLanche}`}</Paragraph>
+              </Card.Content>
+              <Card.Actions>
+                <Button icon="account-edit" onPress={() => editarInformacaoNutricional(item.id)}>
+                  Editar
+                </Button>
+                <Button icon="delete" onPress={() => excluirInformacaoNutricional(item.id)}>
+                  Excluir
+                </Button>
+              </Card.Actions>
+            </Card>
           )}
         />
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
+  inputContainer: {
     marginBottom: 20,
+    width: 200,
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: '2196F3',
     borderWidth: 1,
-    marginBottom: 20,
-    padding: 10,
+    marginBottom: 4,
+    padding: 6,
     width: 200,
     borderRadius: 10,
+    backgroundColor: '#F0F0F0', // Cor de fundo cinza
   },
   button: {
-    backgroundColor: 'black',
-    padding: 10,
-    borderRadius: 10,
+    marginTop: 10,
     marginBottom: 20,
   },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
+  card: {
+    marginBottom: 10,
+    width: 300,
   },
+  headerCard: {
+    marginBottom: 10,
+    width: 300,
+    backgroundColor: '#fffff0',
+  },
+  headerTitle: {
+    color: '#black',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
 });
 
 export default CadastroNutricional;
